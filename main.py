@@ -82,4 +82,15 @@ if __name__ == '__main__':
     running = True
 
     while running:
-        running = None  # Will put a feedback loop here
+        selection = input('(c)reate, (e)dit, (s)earch, (d)elete, (q)uit: ')
+        if selection == 'c':
+            idea = Idea()
+            idea.create()
+        elif selection == 'e':
+            pass
+        elif selection == 's':
+            pass
+        elif selection == 'd':
+            pass
+        elif selection == 'q':
+            running = False
