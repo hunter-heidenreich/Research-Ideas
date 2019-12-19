@@ -1,5 +1,6 @@
 import time
 import json
+import os
 
 
 class Idea:
@@ -32,6 +33,49 @@ class Idea:
         self._tags = data['tags']
         self._refs = data['refs']
         self._created_at = data['created_at']
+
+    def create(self):
+        # Idea Sentences
+        cont = 'y'
+        while cont == 'y':
+            idea = input_loop('Idea sentence: ')
+            if idea:
+                self._idea_sentences.append(idea)
+            cont = input('Continue? (y/n): ')
+
+        # Semantic Tags
+        cont = 'y'
+        while cont == 'y':
+            tag = input_loop('Semantic tag: ')
+            if tag:
+                self._tags.append(tag)
+            cont = input('Continue? (y/n): ')
+
+        # References
+        cont = 'y'
+        while cont == 'y':
+            refs = input_loop('Reference of Interest: ')
+            if refs:
+                self._refs.append(refs)
+            cont = input('Continue? (y/n): ')
+
+        self.save()
+
+    def edit(self):
+        pass
+
+    def delete(self):
+        if self._created_at:
+            os.remove('ideas/{}.json'.format(self._created_at))
+
+
+def input_loop(prompt):
+    correct = None
+    text = None
+    while correct != 'y':
+        text = input(prompt)
+        correct = input('Is this correct? (y/n): ')
+    return text
 
 
 if __name__ == '__main__':
