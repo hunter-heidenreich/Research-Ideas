@@ -5,6 +5,10 @@ import os
 from glob import glob
 
 
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+
 class Idea:
 
     def __init__(self, filename=None):
@@ -132,6 +136,12 @@ class Idea:
         references = 'References:\n' + '\n'.join(['\t' + r for r in self._refs])
         return title + '\n' + summary + '\n' + tags + '\n' + references
 
+    def preview(self):
+        print('{}: {}'.format(self._created_at, self._idea_sentences[0][:50]))
+
+    def extract_text(self):
+        return ' '.join(self._idea_sentences + self._tags)
+
 
 def input_loop(prompt):
     correct = None
@@ -171,6 +181,30 @@ def show_ideas():
         return None
 
 
+def load_all_ideas():
+    ideas = []
+    for f in glob('ideas/*.json'):
+        ideas.append(Idea(filename=f))
+    return ideas
+
+
+def tfidf_query(ideas, query, top=3):
+    all_text = list(map(lambda i: i.extract_text(), ideas))
+
+    tfidf = TfidfVectorizer()
+    matx = tfidf.fit_transform([query] + all_text)
+    sims = cosine_similarity(matx)[0, 1:]
+
+    # Sort ideas by similarity
+    ideas_by_sims = sorted(list(zip(all_ideas, sims)),
+                           key=lambda x: x[1], reverse=True)
+
+    # Filter out 0 similarity and only keep top 3
+    ideas_by_sims = list(filter(lambda x: x[1] > 0, ideas_by_sims))[:top]
+
+    return ideas_by_sims
+
+
 if __name__ == '__main__':
     running = True
 
@@ -186,7 +220,19 @@ if __name__ == '__main__':
             except TypeError:
                 print('Error loading idea... Incorrect selection?')
         elif selection == 's':
-            pass
+
+            # Prepare ideas
+            all_ideas = load_all_ideas()
+            query = input('Query text: ')
+
+            hits = tfidf_query(all_ideas, query)
+
+            for idea in hits:
+                i, sim = idea
+                print('Similarity: {}'.format(sim))
+                print(i)
+                print('-' * 50)
+
         elif selection == 'd':
             try:
                 ids = show_ideas()
