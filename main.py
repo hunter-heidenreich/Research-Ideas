@@ -8,6 +8,9 @@ from glob import glob
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+import tensorflow as tf
+import tensorflow_hub as hub
+
 
 class Idea:
 
@@ -222,6 +225,25 @@ def count_query(ideas, query, top=3):
     return ideas_by_sims
 
 
+def use_query(ideas, query, top=3):
+    all_text = list(map(lambda i: i.extract_text(), ideas))
+
+    embed = hub.load(
+        "https://tfhub.dev/google/universal-sentence-encoder-large/5")
+
+    embeddings = embed([query] + all_text)
+    sims = cosine_similarity(embeddings)[0, 1:]
+
+    # Sort ideas by similarity
+    ideas_by_sims = sorted(list(zip(all_ideas, sims)),
+                           key=lambda x: x[1], reverse=True)
+
+    # Filter out 0 similarity and only keep top 3
+    ideas_by_sims = list(filter(lambda x: x[1] > 0, ideas_by_sims))[:top]
+
+    return ideas_by_sims
+
+
 if __name__ == '__main__':
     running = True
 
@@ -238,17 +260,32 @@ if __name__ == '__main__':
                 print('Error loading idea... Incorrect selection?')
         elif selection == 's':
 
+            search_method = input('(c)ount, (t)f-idf, or (u)se search (WARNING: USE is much slower): ')
+
             # Prepare ideas
             all_ideas = load_all_ideas()
             query = input('Query text: ')
 
-            hits = tfidf_query(all_ideas, query)
+            if search_method == 'c':
+                f = count_query
+            elif search_method == 't':
+                f = tfidf_query
+            elif search_method == 'u':
+                f = use_query
+            else:
+                f = None
 
-            for idea in hits:
-                i, sim = idea
-                print('Similarity: {}'.format(sim))
-                print(i)
-                print('-' * 50)
+            if f:
+                hits = f(all_ideas, query)
+
+                for idea in hits:
+                    i, sim = idea
+                    print('Similarity: {}'.format(sim))
+                    print(i)
+                    print('-' * 50)
+            else:
+                print('Unrecognized search method')
+
         elif selection == 'd':
             try:
                 ids = show_ideas()
@@ -262,6 +299,9 @@ if __name__ == '__main__':
             except TypeError:
                 print('Error loading idea... Incorrect selection?')
         elif selection == 'v':
-            print(show_ideas())
+            try:
+                print(show_ideas())
+            except TypeError:
+                pass
         elif selection == 'q':
             running = False
