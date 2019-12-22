@@ -226,7 +226,7 @@ if __name__ == '__main__':
     running = True
 
     while running:
-        selection = input('(c)reate, (e)dit, (s)earch, (d)elete, (q)uit: ')
+        selection = input('(c)reate, (v)iew, (e)dit, (s)earch, (d)elete, (q)uit: ')
         if selection == 'c':
             Idea().create()
         elif selection == 'e':
@@ -242,14 +242,13 @@ if __name__ == '__main__':
             all_ideas = load_all_ideas()
             query = input('Query text: ')
 
-            hits = count_query(all_ideas, query)
+            hits = tfidf_query(all_ideas, query)
 
             for idea in hits:
                 i, sim = idea
                 print('Similarity: {}'.format(sim))
                 print(i)
                 print('-' * 50)
-
         elif selection == 'd':
             try:
                 ids = show_ideas()
@@ -262,5 +261,7 @@ if __name__ == '__main__':
                 print('Error loading idea... Incorrect selection?')
             except TypeError:
                 print('Error loading idea... Incorrect selection?')
+        elif selection == 'v':
+            print(show_ideas())
         elif selection == 'q':
             running = False
