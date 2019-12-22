@@ -188,6 +188,16 @@ if __name__ == '__main__':
         elif selection == 's':
             pass
         elif selection == 'd':
-            pass
+            try:
+                ids = show_ideas()
+                print(ids)
+                ans = input('Is this correct? (y/n): ')
+                if ans == 'y':
+                    ids.delete()
+                    del ids
+            except AttributeError:
+                print('Error loading idea... Incorrect selection?')
+            except TypeError:
+                print('Error loading idea... Incorrect selection?')
         elif selection == 'q':
             running = False
