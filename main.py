@@ -5,7 +5,7 @@ import os
 from glob import glob
 
 
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 
@@ -205,6 +205,23 @@ def tfidf_query(ideas, query, top=3):
     return ideas_by_sims
 
 
+def count_query(ideas, query, top=3):
+    all_text = list(map(lambda i: i.extract_text(), ideas))
+
+    count = CountVectorizer()
+    matx = count.fit_transform([query] + all_text)
+    sims = cosine_similarity(matx)[0, 1:]
+
+    # Sort ideas by similarity
+    ideas_by_sims = sorted(list(zip(all_ideas, sims)),
+                           key=lambda x: x[1], reverse=True)
+
+    # Filter out 0 similarity and only keep top 3
+    ideas_by_sims = list(filter(lambda x: x[1] > 0, ideas_by_sims))[:top]
+
+    return ideas_by_sims
+
+
 if __name__ == '__main__':
     running = True
 
@@ -225,7 +242,7 @@ if __name__ == '__main__':
             all_ideas = load_all_ideas()
             query = input('Query text: ')
 
-            hits = tfidf_query(all_ideas, query)
+            hits = count_query(all_ideas, query)
 
             for idea in hits:
                 i, sim = idea
