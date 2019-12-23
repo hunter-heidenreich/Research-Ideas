@@ -174,7 +174,7 @@ def show_ideas():
     ideas = list(glob('ideas/*.json'))
     fst_sents = []
     for idea in ideas:
-        fst_sents.append(json.load(open(idea))['idea'][0])
+        fst_sents.append(json.load(open(idea))['idea'][0][:50])
 
     ideas = list(zip(ideas, fst_sents))
     _, select = display_list_as_opts(ideas)
